@@ -1,106 +1,106 @@
-# BSC Analyzer
+# BSC Historical Token Balance Analyzer
 
-Herramienta para auditoría on-chain de tokens BEP-20 en BNB Smart Chain. Consulta saldos históricos, rastrea transferencias y genera análisis visuales — todo desde la blockchain, sin depender de APIs de terceros como BscScan.
+On-chain auditing toolkit for BEP-20 tokens on BNB Smart Chain. Query historical balances, track transfers, and generate analytics — directly from the blockchain, no third-party APIs like BscScan needed.
 
-## Requisitos
+## Requirements
 
 - Python 3.8+
-- API Key gratuita de [NodeReal](https://www.nodereal.io/) (archive node)
+- Free API key from [NodeReal](https://www.nodereal.io/) (archive node access)
 
-## Instalación
+## Installation
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Configuración
+## Configuration
 
-Crea un archivo `.env` con tu URL RPC de MegaNode:
+Create a `.env` file with your NodeReal RPC URL:
 
 ```
-MEGANODE_RPC_URL=https://bsc-mainnet.nodereal.io/v1/tu-api-key
+MEGANODE_RPC_URL=https://bsc-mainnet.nodereal.io/v1/your-api-key
 ```
 
-## Uso
+## Usage
 
-### Consulta rápida (CLI)
+### Quick balance check (CLI)
 
-Saldo de un token en un bloque exacto:
+Query a token balance at an exact block:
 
 ```bash
 python3 check_twt_balance.py
 ```
 
-Por defecto consulta TWT en la wallet `0xe2fc31...` al bloque `46080111`. Para cambiar token/wallet/bloque, edita las constantes al inicio del script.
+Defaults to TWT token, wallet `0xe2fc31...`, block `46080111`. Edit the constants at the top of the script to change token/wallet/block.
 
-### Análisis completo (Jupyter Notebook)
+### Full analysis (Jupyter Notebook)
 
 ```bash
 jupyter notebook notebooks/twt_analysis.ipynb
 ```
 
-Ejecuta cada celda con `Shift+Enter`. El notebook contiene:
+Run each cell with `Shift+Enter`. The notebook includes:
 
-| Sección | Descripción |
+| Section | Description |
 |---|---|
-| Setup | Conexión a BSC vía MegaNode |
-| Saldo histórico | Balance en cualquier bloque del pasado |
-| Tendencia | Gráfico de evolución del saldo cada 1M bloques |
-| Transferencias | Tracking BEP-20 con detección inteligente de cambios |
-| Top contrapartes | Ranking de destinos de transfers salientes |
-| Consulta puntual | Saldo en un bloque arbitrario |
+| Setup | Connect to BSC via NodeReal |
+| Historical balance | Token balance at any past block |
+| Trend | Balance evolution chart (every 1M blocks) |
+| Transfers | BEP-20 transfer tracking with smart change detection |
+| Top counterparties | Ranking of outgoing transfer destinations |
+| Ad-hoc query | Balance at any arbitrary block |
 
-## Cómo funciona
+## How it works
 
-### Saldo histórico (`eth_call`)
+### Historical balance (`eth_call`)
 
-Ejecuta `balanceOf(wallet)` en el estado de la blockchain congelado en un bloque específico. No consulta el saldo actual sino el de ese momento exacto.
+Executes `balanceOf(wallet)` against the blockchain state frozen at a specific block. Returns the balance as it was at that exact moment, not the current one.
 
-### Tracking de transferencias
+### Transfer tracking
 
-En vez de barrer todos los bloques con `eth_getLogs`, el algoritmo:
+Instead of scanning all blocks with `eth_getLogs`, the algorithm:
 
-1. Muestrea `balanceOf` cada 500k bloques
-2. Detecta solo los rangos donde el saldo cambió
-3. Escanea únicamente esos rangos con `eth_getLogs` (en chunks de 49,999 bloques)
+1. Samples `balanceOf` every 500K blocks
+2. Detects only ranges where the balance changed
+3. Scans only those ranges with `eth_getLogs` (in 49,999 block chunks)
 
-Esto reduce ~2000 llamadas RPC a ~200 para un rango típico de 50M bloques.
+This reduces ~2,000 RPC calls to ~200 for a typical 50M block range.
 
-### Análisis
+### Analytics
 
-- **Tendencia**: muestrea el saldo cada 1M bloques y lo grafica
-- **Contrapartes**: agrupa transfers salientes por destinatario y muestra top N
+- **Trend**: samples balance every 1M blocks and plots it
+- **Counterparties**: groups outgoing transfers by recipient, shows top N
 
-## Uso con otros tokens o wallets
+## Using with other tokens or wallets
 
-Edita `bsc_analyzer/config.py`:
+Edit `bsc_analyzer/config.py`:
 
 ```python
-TWT_CONTRACT = Web3.to_checksum_address("0xNuevoToken...")
-WALLET = Web3.to_checksum_address("0xNuevaWallet...")
-START_BLOCK = 12345678   # Bloque desde donde empezar el análisis
+TWT_CONTRACT = Web3.to_checksum_address("0xNewToken...")
+WALLET = Web3.to_checksum_address("0xNewWallet...")
+START_BLOCK = 12345678   # Block to start analysis from
 ```
 
-## Compatibilidad
+## Compatibility
 
-Funciona con cualquier EVM chain (Ethereum, Polygon, Arbitrum, etc.). Solo cambia `MEGANODE_RPC_URL` por un RPC de archive node de la red deseada.
+Works with any EVM chain (Ethereum, Polygon, Arbitrum, etc.). Just change `MEGANODE_RPC_URL` to an archive node RPC for your target network.
 
-## Estructura del proyecto
+## Project structure
 
 ```
 bsc_analyzer/
-├── config.py       # Constantes, conexión RPC
-├── balance.py      # eth_call para saldo histórico
-├── transfers.py    # Tracking inteligente de transfers
-├── trend.py        # Muestreo de tendencia
-├── reports.py      # Contrapartes y resúmenes
-└── viz.py          # Gráficos matplotlib
-check_twt_balance.py  # Script CLI
+├── config.py       # Constants, RPC connection
+├── balance.py      # eth_call for historical balance
+├── transfers.py    # Smart BEP-20 transfer tracking
+├── trend.py        # Balance trend sampling
+├── reports.py      # Counterparty analysis & summaries
+└── viz.py          # Matplotlib charts
+check_twt_balance.py  # CLI script
 notebooks/
-└── twt_analysis.ipynb  # Notebook interactivo
+└── twt_analysis.ipynb  # Interactive notebook
 ```
 
-## Limitaciones
+## Limitations
 
-- El tracking de transfers requiere ~1 min por cada millón de bloques con actividad
-- MegaNode tiene rate limits; para análisis muy extensos considera usar lotes más pequeños
+- Transfer tracking takes ~1 min per million blocks with activity
+- NodeReal has rate limits; for large scans, consider smaller batch sizes
