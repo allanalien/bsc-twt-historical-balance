@@ -5,7 +5,7 @@ Herramienta para auditoría on-chain de tokens BEP-20 en BNB Smart Chain. Consul
 ## Requisitos
 
 - Python 3.8+
-- API Key gratuita de [MegaNode](https://www.meganode.io/) (archive node)
+- API Key gratuita de [NodeReal](https://www.nodereal.io/) (archive node)
 
 ## Instalación
 
